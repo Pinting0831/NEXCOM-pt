@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>使用 fetch 顯示使用者清單 (posts)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen p-6">
+  <div class="max-w-6xl mx-auto">
+    <header class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold">使用者清單</h1>
+      <div class="text-sm text-slate-600">資料來源：jsonplaceholder.typicode.com/posts</div>
+    </header>
+
+    <section class="grid md:grid-cols-3 gap-6">
+      <!-- Table area (2 cols) -->
+      <div class="md:col-span-2 bg-white rounded shadow p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div class="flex gap-2 items-center">
+            <label class="text-sm font-medium">搜尋：</label>
+            <input id="searchInput" class="border rounded p-2 w-72" placeholder="搜尋 title 或 body..." />
+            <button id="refreshBtn" class="ml-2 px-3 py-2 border rounded text-sm">重新載入</button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-sm">每頁顯示：</label>
+            <select id="pageSize" class="border p-2 rounded">
+              <option>5</option>
+              <option selected>10</option>
+              <option>20</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Loading / Error -->
+        <div id="status" class="mb-4 text-sm text-slate-600"></div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table id="dataTable" class="min-w-full border-collapse">
+            <thead>
+              <tr class="text-left text-sm text-slate-700">
+                <th class="p-2 cursor-pointer" data-sort="id">ID <span id="sort-id"></span></th>
+                <th class="p-2 cursor-pointer" data-sort="userId">UserID <span id="sort-userId"></span></th>
+                <th class="p-2 cursor-pointer" data-sort="title">Title <span id="sort-title"></span></th>
+                <th class="p-2">Body (preview)</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="text-sm"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex items-center justify-between">
+          <div id="pagingInfo" class="text-sm text-slate-600"></div>
+          <div class="flex items-center gap-2" id="pagination"></div>
+        </div>
+      </div>
+
+      <!-- Detail panel (1 col) -->
+      <aside class="bg-white rounded shadow p-4">
+        <h2 class="font-semibold text-lg mb-2">選取項目詳細</h2>
+        <div id="detail" class="text-sm text-slate-700">
+          <p class="text-slate-400">尚未選取任何列。點擊表格中的任一列查看完整內容。</p>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+<script>
+/* ---------- 全域狀態 ---------- */
+const API_URL = 'https://jsonplaceholder.typicode.com/posts';
+let rawData = [];      // 原始取得的資料
+let filtered = [];     // 搜尋/排序後的資料
+let currentPage = 1;
+let pageSize = 10;
+let currentSort = { key: 'id', dir: 'asc' }; // dir: 'asc' | 'desc'
+
+/* ---------- 元素 ---------- */
+const statusEl = document.getElementById('status');
+const tableBody = document.getElementById('tableBody');
+const paginationEl = document.getElementById('pagination');
+const pagingInfo = document.getElementById('pagingInfo');
+const detailEl = document.getElementById('detail');
+const searchInput = document.getElementById('searchInput');
+const pageSizeSelect = document.getElementById('pageSize');
+const refreshBtn = document.getElementById('refreshBtn');
+const sortHeaders = document.querySelectorAll('th[data-sort]');
+
+/* ---------- 載入資料 ---------- */
+async function loadData() {
+  setStatus('載入中...');
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error('網路錯誤: ' + res.status);
+    rawData = await res.json();
+    setStatus(`已載入 ${rawData.length} 筆資料`);
+    applyFilters(); // 初始處理
+  } catch (err) {
+    setStatus('載入失敗：' + err.message);
+    tableBody.innerHTML = '';
+    paginationEl.innerHTML = '';
+    pagingInfo.textContent = '';
+  }
+}
+
+/* ---------- 工具：狀態訊息 ---------- */
+function setStatus(text) {
+  statusEl.textContent = text;
+}
+
+/* ---------- 搜尋 / 分頁 / 排序 流程 ---------- */
+function applyFilters() {
+  const q = searchInput.value.trim().toLowerCase();
+  // 搜尋 title 或 body
+  filtered = rawData.filter(item => {
+    if (!q) return true;
+    return item.title.toLowerCase().includes(q) || item.body.toLowerCase().includes(q);
+  });
+
+  // 排序
+  const { key, dir } = currentSort;
+  filtered.sort((a,b) => {
+    if (a[key] < b[key]) return dir === 'asc' ? -1 : 1;
+    if (a[key] > b[key]) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // 調整頁碼範圍
+  currentPage = Math.max(1, Math.min(currentPage, Math.ceil(filtered.length / pageSize) || 1));
+  renderTable();
+  renderPagination();
+}
+
+/* ---------- 呈現表格（分頁） ---------- */
+function renderTable() {
+  const start = (currentPage - 1) * pageSize;
+  const pageItems = filtered.slice(start, start + pageSize);
+
+  if (pageItems.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="4" class="p-4 text-slate-500">沒有符合的資料</td></tr>';
+    pagingInfo.textContent = '';
+    return;
+  }
+
+  tableBody.innerHTML = pageItems.map(item => {
+    // body 預覽（縮短）
+    const preview = item.body.length > 80 ? item.body.slice(0,80) + '…' : item.body;
+    return `
+      <tr class="border-t hover:bg-slate-50 cursor-pointer" data-id="${item.id}">
+        <td class="p-2 align-top">${item.id}</td>
+        <td class="p-2 align-top">${item.userId}</td>
+        <td class="p-2 align-top font-medium">${escapeHtml(item.title)}</td>
+        <td class="p-2 align-top text-slate-600">${escapeHtml(preview)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // 更新分頁資訊
+  const total = filtered.length;
+  const from = start + 1;
+  const to = Math.min(start + pageSize, total);
+  pagingInfo.textContent = `顯示 ${from}–${to} / 共 ${total} 筆`;
+
+  // 綁定列點擊事件（顯示詳細）
+  document.querySelectorAll('#tableBody tr[data-id]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const id = Number(tr.getAttribute('data-id'));
+      const item = rawData.find(x => x.id === id);
+      showDetail(item);
+    });
+  });
+}
+
+/* ---------- 呈現頁碼按鈕 ---------- */
+function renderPagination() {
+  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+  const maxButtons = 7;
+  let start = Math.max(1, currentPage - Math.floor(maxButtons/2));
+  let end = start + maxButtons - 1;
+  if (end > totalPages) { end = totalPages; start = Math.max(1, end - maxButtons + 1); }
+
+  const buttons = [];
+
+  // Prev
+  buttons.push(`<button ${currentPage===1 ? 'disabled' : ''} data-page="${currentPage-1}" class="px-3 py-1 border rounded ${currentPage===1?'opacity-50':''}">Prev</button>`);
+
+  // First + ellipsis
+  if (start > 1) {
+    buttons.push(`<button data-page="1" class="px-3 py-1 border rounded">1</button>`);
+    if (start > 2) buttons.push(`<span class="px-2">…</span>`);
+  }
+
+  // Pages
+  for (let p = start; p <= end; p++) {
+    buttons.push(`<button data-page="${p}" class="px-3 py-1 border rounded ${p===currentPage ? 'bg-slate-200':''}">${p}</button>`);
+  }
+
+  // Last + ellipsis
+  if (end < totalPages) {
+    if (end < totalPages - 1) buttons.push(`<span class="px-2">…</span>`);
+    buttons.push(`<button data-page="${totalPages}" class="px-3 py-1 border rounded">${totalPages}</button>`);
+  }
+
+  // Next
+  buttons.push(`<button ${currentPage===totalPages ? 'disabled' : ''} data-page="${currentPage+1}" class="px-3 py-1 border rounded ${currentPage===totalPages?'opacity-50':''}">Next</button>`);
+
+  paginationEl.innerHTML = buttons.join(' ');
+
+  // 綁定頁碼事件
+  paginationEl.querySelectorAll('button[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = Number(btn.getAttribute('data-page'));
+      if (!isNaN(p)) {
+        currentPage = p;
+        renderTable();
+        renderPagination();
+        // 滾回表格頂端（較長頁面時較友善）
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  });
+}
+
+/* ---------- 顯示詳細內容（右側） ---------- */
+function showDetail(item) {
+  if (!item) {
+    detailEl.innerHTML = '<p class="text-slate-400">找不到內容</p>';
+    return;
+  }
+  detailEl.innerHTML = `
+    <div class="space-y-2">
+      <p><strong>ID：</strong>${item.id}</p>
+      <p><strong>UserID：</strong>${item.userId}</p>
+      <p><strong>Title：</strong><span class="font-medium">${escapeHtml(item.title)}</span></p>
+      <div>
+        <strong>Body：</strong>
+        <p class="mt-2 text-slate-700 whitespace-pre-wrap">${escapeHtml(item.body)}</p>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- 輔助：escape HTML ---------- */
+function escapeHtml(unsafe) {
+  return (''+unsafe).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+}
+
+/* ---------- 事件綁定：搜尋、頁面大小、重新載入、排序 ---------- */
+searchInput.addEventListener('input', () => {
+  currentPage = 1;
+  applyFilters();
+});
+
+pageSizeSelect.addEventListener('change', () => {
+  pageSize = Number(pageSizeSelect.value) || 10;
+  currentPage = 1;
+  applyFilters();
+});
+
+refreshBtn.addEventListener('click', () => {
+  loadData();
+});
+
+sortHeaders.forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.getAttribute('data-sort');
+    if (currentSort.key === key) {
+      currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.key = key;
+      currentSort.dir = 'asc';
+    }
+    // 更新小箭頭顯示
+    document.querySelectorAll('th[data-sort] span').forEach(s => s.textContent = '');
+    const span = th.querySelector('span');
+    span.textContent = currentSort.dir === 'asc' ? '▲' : '▼';
+
+    applyFilters();
+  });
+});
+
+/* ---------- 初始化 ---------- */
+(function init(){
+  pageSize = Number(pageSizeSelect.value) || 10;
+  setStatus('準備載入資料...');
+  loadData();
+})();
+</script>
+</body>
+</html>
