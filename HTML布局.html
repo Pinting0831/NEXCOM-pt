@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HTML布局</title>
+    <!-- Tailwind Play CDN for quick prototyping -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="description" content="範例的基本 HTML + CSS (Tailwind) 網站，包含 RWD 與簡單互動" />
+  </head>
+  <body class="antialiased bg-slate-50 text-slate-800">
+    <!-- Navbar -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="#" class="text-lg font-bold">MySite</a>
+        <nav class="hidden md:flex gap-6 items-center">
+          <a href="#features" class="hover:text-sky-600">特色</a>
+          <a href="#gallery" class="hover:text-sky-600">作品</a>
+          <a href="#contact" class="hover:text-sky-600">聯絡</a>
+        </nav>
+
+        <!-- Mobile menu button -->
+        <button id="menuBtn" class="md:hidden p-2 rounded hover:bg-slate-100">
+          <svg id="menuIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile nav -->
+      <div id="mobileNav" class="md:hidden hidden border-t">
+        <div class="px-4 py-3 flex flex-col gap-2">
+          <a href="#features" class="block">特色</a>
+          <a href="#gallery" class="block">作品</a>
+          <a href="#contact" class="block">聯絡</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <main>
+      <section class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">WELCOME!</h1>
+            <p class="mt-4 text-slate-600">歡迎來到MySite</p>
+            <div class="mt-6 flex gap-3">
+              <a href="#features" class="inline-block bg-sky-600 text-white px-4 py-2 rounded shadow hover:bg-sky-700">了解更多</a>
+              <a href="#contact" class="inline-block border px-4 py-2 rounded hover:bg-slate-100">聯絡我們</a>
+            </div>
+          </div>
+          <div class="relative">
+            <div class="aspect-[4/3] bg-gradient-to-br from-sky-100 to-slate-100 rounded-lg shadow flex items-center justify-center">
+              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=60" alt="示意圖" class="object-cover w-full h-full rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section id="features" class="bg-white py-12">
+        <div class="container mx-auto px-4">
+          <h2 class="text-2xl font-semibold">特色</h2>
+          <p class="mt-2 text-slate-600">本篇特色</p>
+
+          <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <article class="p-4 bg-slate-50 rounded-lg shadow-sm">
+              <h3 class="font-semibold">特色1</h3>
+              <p class="mt-2 text-sm text-slate-600">本篇特色1</p>
+            </article>
+            <article class="p-4 bg-slate-50 rounded-lg shadow-sm">
+              <h3 class="font-semibold">特色2</h3>
+              <p class="mt-2 text-sm text-slate-600">本篇特色2</p>
+            </article>
+            <article class="p-4 bg-slate-50 rounded-lg shadow-sm">
+              <h3 class="font-semibold">特色3</h3>
+              <p class="mt-2 text-sm text-slate-600">本篇特色3</p>
+            </article>
+            <article class="p-4 bg-slate-50 rounded-lg shadow-sm">
+              <h3 class="font-semibold">特色4</h3>
+              <p class="mt-2 text-sm text-slate-600">本篇特色4</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gallery -->
+      <section id="gallery" class="container mx-auto px-4 py-12">
+        <h2 class="text-2xl font-semibold">作品集</h2>
+        <p class="mt-2 text-slate-600">簡單的圖片範例</p>
+
+        <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- 8 sample cards -->
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=800&q=60" alt="作品 1" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 1</figcaption>
+          </figure>
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=60" alt="作品 2" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 2</figcaption>
+          </figure>
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=60" alt="作品 3" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 3</figcaption>
+          </figure>
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?auto=format&fit=crop&w=800&q=60" alt="作品 4" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 4</figcaption>
+          </figure>
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1518779578993-ec3579fee39f?auto=format&fit=crop&w=800&q=60" alt="作品 5" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 5</figcaption>
+          </figure>
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=800&q=60" alt="作品 6" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 6</figcaption>
+          </figure>
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=800&q=60" alt="作品 7" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 7</figcaption>
+          </figure>
+          <figure class="rounded overflow-hidden bg-white shadow-sm">
+            <img src="https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&w=800&q=60" alt="作品 8" class="w-full h-40 object-cover"/>
+            <figcaption class="p-3 text-sm">作品 8</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <section id="contact" class="bg-white py-12">
+        <div class="container mx-auto px-4 max-w-2xl">
+          <h2 class="text-2xl font-semibold">聯絡我們</h2>
+          <p class="mt-2 text-slate-600">留下訊息，我們會盡快回覆。</p>
+
+          <form id="contactForm" class="mt-6 grid gap-4">
+            <label class="grid">
+              <span class="text-sm font-medium">姓名</span>
+              <input type="text" id="name" required class="mt-1 p-2 border rounded" placeholder="你的名字">
+            </label>
+
+            <label class="grid">
+              <span class="text-sm font-medium">Email</span>
+              <input type="email" id="email" required class="mt-1 p-2 border rounded" placeholder="you@example.com">
+            </label>
+
+            <label class="grid">
+              <span class="text-sm font-medium">訊息</span>
+              <textarea id="message" required class="mt-1 p-2 border rounded" rows="4" placeholder="寫下你的問題或需求..."></textarea>
+            </label>
+
+            <div class="flex items-center gap-3">
+              <button type="submit" class="bg-sky-600 text-white px-4 py-2 rounded">送出</button>
+              <button type="reset" class="border px-3 py-2 rounded">重填</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-white py-6 mt-8">
+      <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p>© <span id="year"></span> MySite. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      // Mobile menu toggle
+      const menuBtn = document.getElementById('menuBtn');
+      const mobileNav = document.getElementById('mobileNav');
+      menuBtn.addEventListener('click', () => {
+        mobileNav.classList.toggle('hidden');
+      });
+
+    
+
+      // Contact form handler (demo only)
+      const form = document.getElementById('contactForm');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const message = document.getElementById('message').value.trim();
+        if (!name || !email || !message) {
+          alert('請完整填寫表單欄位');
+          return;
+        }
+        // demo: show a friendly message. In production -> send to server or use fetch
+        alert(`感謝 ${name} 的聯絡！我們已收到你的訊息。`);
+        form.reset();
+      });
+
+      // Auto year in footer
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
